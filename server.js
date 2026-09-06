@@ -10,6 +10,7 @@ import {
   processBrainDump,
   summarizeForShare,
 } from "./src/gemini.js";
+import { encryptApiKey, decryptApiKey } from "./src/vault.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -24,6 +25,23 @@ app.use(express.static(path.join(__dirname, "public")));
 // The frontend gets this token from firebase.auth().currentUser.getIdToken()
 // and sends it as "Authorization: Bearer <token>".
 // ---------------------------------------------------------------------------
+
+
+// ---------------------------------------------------------------------------
+// Encrypted User Key Vault — retrieves and decrypts user's key in memory only
+// ---------------------------------------------------------------------------
+async function getUserApiKey(uid) {
+  try {
+    const doc = await db.collection("user_vault").doc(uid).get();
+    if (!doc.exists) return null;
+    const data = doc.data();
+    if (!data.encryptedKey) return null;
+    return decryptApiKey(data.encryptedKey);
+  } catch (err) {
+    console.error("Error retrieving user API key from vault:", err);
+    return null;
+  }
+}
 
 async function requireAuth(req, res, next) {
   const header = req.headers.authorization || "";
@@ -94,7 +112,7 @@ app.post("/api/entries", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Entry is too long (max 8000 characters)." });
     }
 
-    const userApiKey = (req.headers["x-gemini-key"] || "").trim();
+    const userApiKey = await getUserApiKey(req.uid);
     let aiResult;
     if (mode === "reflect") {
       const memoryContext = await buildMemoryContext(req.uid);
@@ -198,7 +216,7 @@ app.post("/api/share", requireAuth, async (req, res) => {
       })
       .reverse();
 
-    const userApiKey = (req.headers["x-gemini-key"] || "").trim();
+    const userApiKey = await getUserApiKey(req.uid);
     let summaryData;
     try {
       summaryData = await summarizeForShare({ entries, userApiKey });
@@ -301,6 +319,61 @@ app.get("/api/share/:id", async (req, res) => {
   } catch (err) {
     console.error("GET /api/share/:id failed:", err);
     res.status(500).json({ error: "Could not load this shared recap." });
+  }
+});
+
+
+// ---------------------------------------------------------------------------
+// Encrypted Key Vault Management Routes
+// ---------------------------------------------------------------------------
+app.get("/api/user/key-status", requireAuth, async (req, res) => {
+  try {
+    const doc = await db.collection("user_vault").doc(req.uid).get();
+    if (!doc.exists || !doc.data().encryptedKey) {
+      return res.json({ hasCustomKey: false });
+    }
+    const data = doc.data();
+    res.json({
+      hasCustomKey: true,
+      keyHint: data.keyHint || "...configured",
+      updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : null,
+    });
+  } catch (err) {
+    console.error("GET /api/user/key-status failed:", err);
+    res.status(500).json({ error: "Could not check API key status." });
+  }
+});
+
+app.post("/api/user/key", requireAuth, async (req, res) => {
+  try {
+    const { apiKey } = req.body || {};
+    if (!apiKey || typeof apiKey !== "string" || apiKey.trim().length < 10) {
+      return res.status(400).json({ error: "Please enter a valid Gemini API key (at least 10 characters)." });
+    }
+    const trimmed = apiKey.trim();
+    const encryptedKey = encryptApiKey(trimmed);
+    const keyHint = "..." + trimmed.slice(-4);
+
+    await db.collection("user_vault").doc(req.uid).set({
+      encryptedKey,
+      keyHint,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    res.json({ ok: true, keyHint });
+  } catch (err) {
+    console.error("POST /api/user/key failed:", err);
+    res.status(500).json({ error: "Could not save encrypted API key." });
+  }
+});
+
+app.delete("/api/user/key", requireAuth, async (req, res) => {
+  try {
+    await db.collection("user_vault").doc(req.uid).delete();
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("DELETE /api/user/key failed:", err);
+    res.status(500).json({ error: "Could not remove API key." });
   }
 });
 

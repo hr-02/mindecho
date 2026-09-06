@@ -132,17 +132,18 @@
   <!-- API Key Settings Panel -->
   <div id="apiKeyBanner" style="display:none; background:#1a1a2e; border-top:1px solid #2a2a4a; padding:12px 24px; font-size:13px; color:#aaa; text-align:center;">
     <strong style="color:#e2b96b;">API key is not set</strong>
-    Add your own free <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#7c8fff;">Google AI Studio key</a> to avoid rate limits.
+    <span id="apiKeyBannerDesc">Add your own free <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#7c8fff;">Google AI Studio key</a> to avoid rate limits.</span>
     <button id="showApiKeySettings" style="margin-left:12px; background:#2a2a4a; border:1px solid #444; color:#ccc; padding:4px 12px; border-radius:6px; cursor:pointer;">Set my key</button>
   </div>
   <dialog id="apiKeyDialog" style="background:#12122a; border:1px solid #2a2a4a; border-radius:12px; padding:28px; color:#ddd; max-width:480px; width:90%;">
-    <h3 style="margin:0 0 8px; color:#e2b96b;">Your Gemini API Key</h3>
-    <p style="font-size:13px; color:#aaa; margin:0 0 16px;">Your key is stored only in your browser (localStorage) and sent directly to MindEcho's backend for your requests. It is never stored on any server.<br><br>Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#7c8fff;">aistudio.google.com</a>.</p>
-    <input id="apiKeyInput" type="password" placeholder="Paste your Gemini API key here" style="width:100%; box-sizing:border-box; padding:10px; border-radius:8px; border:1px solid #444; background:#1a1a2e; color:#fff; font-size:14px; margin-bottom:12px;" />
+    <h3 style="margin:0 0 8px; color:#e2b96b;">Secure Personal API Key</h3>
+    <p style="font-size:13px; color:#aaa; margin:0 0 16px;">Your key is encrypted using <strong>AES-256-GCM</strong> and stored in your private server-side vault. It is never stored in browser localStorage.<br><br>Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#7c8fff;">aistudio.google.com</a>.</p>
+    <div id="currentKeyNotice" style="display:none; margin-bottom:12px; padding:10px 14px; background:#1e1e38; border-radius:8px; font-size:13px; color:#7fff7f; border:1px solid #2a2a4a;"></div>
+    <input id="apiKeyInput" type="password" placeholder="Paste your Gemini API key (AIzaSy...)" style="width:100%; box-sizing:border-box; padding:10px; border-radius:8px; border:1px solid #444; background:#1a1a2e; color:#fff; font-size:14px; margin-bottom:12px;" />
     <div style="display:flex; gap:8px; justify-content:flex-end;">
-      <button id="clearApiKey" style="padding:8px 16px; border-radius:8px; border:1px solid #555; background:transparent; color:#aaa; cursor:pointer;">Clear</button>
+      <button id="clearApiKey" style="display:none; padding:8px 16px; border-radius:8px; border:1px solid #e74c3c; background:transparent; color:#e74c3c; cursor:pointer;">Remove Key</button>
       <button id="cancelApiKey" style="padding:8px 16px; border-radius:8px; border:1px solid #555; background:transparent; color:#aaa; cursor:pointer;">Cancel</button>
-      <button id="saveApiKey" style="padding:8px 18px; border-radius:8px; border:none; background:#5c6bc0; color:#fff; cursor:pointer; font-weight:600;">Save</button>
+      <button id="saveApiKey" style="padding:8px 18px; border-radius:8px; border:none; background:#5c6bc0; color:#fff; cursor:pointer; font-weight:600;">Save Key</button>
     </div>
     <p id="apiKeyStatus" style="font-size:12px; color:#7fff7f; margin:8px 0 0; min-height:16px;"></p>
   </dialog>

@@ -118,23 +118,18 @@ function describeAuthError(err) {
 // Authenticated fetch helper
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// User Gemini API key  stored in localStorage, sent as x-gemini-key header
-// The server uses it per-request instead of the fallback server key.
 // ---------------------------------------------------------------------------
-function getUserGeminiKey() {
-  return (localStorage.getItem("mindecho_gemini_key") || "").trim();
-}
-
+// Authenticated API Fetch
+// The server automatically retrieves and decrypts the user's personal key
+// from the server-side AES-256 vault.
+// ---------------------------------------------------------------------------
 async function apiFetch(path, options = {}) {
   const token = await auth.currentUser.getIdToken();
-  const userKey = getUserGeminiKey();
-  const extraHeaders = userKey ? { "x-gemini-key": userKey } : {};
   const res = await fetch(path, {
     ...options,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
-      ...extraHeaders,
       ...(options.headers || {}),
     },
   });
@@ -376,51 +371,106 @@ const saveApiKeyBtn = document.getElementById("saveApiKey");
 const clearApiKeyBtn = document.getElementById("clearApiKey");
 const cancelApiKeyBtn = document.getElementById("cancelApiKey");
 const apiKeyStatus = document.getElementById("apiKeyStatus");
+const currentKeyNotice = document.getElementById("currentKeyNotice");
 
-function refreshApiKeyBanner() {
-  const key = getUserGeminiKey();
-  if (apiKeyBanner) {
-    if (!key) {
+let userHasCustomKey = false;
+let userKeyHint = "";
+
+async function refreshApiKeyBanner() {
+  if (!auth.currentUser) return;
+  // Clean up any legacy localStorage item
+  localStorage.removeItem("mindecho_gemini_key");
+
+  try {
+    const data = await apiFetch("/api/user/key-status");
+    userHasCustomKey = !!data.hasCustomKey;
+    userKeyHint = data.keyHint || "";
+    if (apiKeyBanner) {
       apiKeyBanner.style.display = "block";
-      apiKeyBanner.querySelector("strong").textContent = "API key is not set";
-      apiKeyBanner.querySelector("strong").style.color = "#e2b96b";
-    } else {
-      apiKeyBanner.style.display = "block";
-      apiKeyBanner.querySelector("strong").textContent = "Using your personal API key.";
-      apiKeyBanner.querySelector("strong").style.color = "#7fff7f";
+      const statusEl = apiKeyBanner.querySelector("strong");
+      if (userHasCustomKey) {
+        statusEl.textContent = `Using your personal API key (${userKeyHint}).`;
+        statusEl.style.color = "#7fff7f";
+        if (showApiKeySettings) showApiKeySettings.textContent = "Change key";
+      } else {
+        statusEl.textContent = "API key is not set";
+        statusEl.style.color = "#e2b96b";
+        if (showApiKeySettings) showApiKeySettings.textContent = "Set my key";
+      }
     }
+  } catch (err) {
+    console.warn("Could not check API key status:", err);
   }
 }
 
 if (showApiKeySettings) {
   showApiKeySettings.addEventListener("click", () => {
-    apiKeyInput.value = getUserGeminiKey();
+    apiKeyInput.value = "";
     apiKeyStatus.textContent = "";
+    if (userHasCustomKey) {
+      if (currentKeyNotice) {
+        currentKeyNotice.style.display = "block";
+        currentKeyNotice.textContent = `Active key ending in ${userKeyHint}. You can enter a new key below to change it, or remove it.`;
+      }
+      if (clearApiKeyBtn) clearApiKeyBtn.style.display = "inline-block";
+    } else {
+      if (currentKeyNotice) currentKeyNotice.style.display = "none";
+      if (clearApiKeyBtn) clearApiKeyBtn.style.display = "none";
+    }
     apiKeyDialog.showModal();
   });
 }
+
 if (saveApiKeyBtn) {
-  saveApiKeyBtn.addEventListener("click", () => {
+  saveApiKeyBtn.addEventListener("click", async () => {
     const key = apiKeyInput.value.trim();
-    if (key) {
-      localStorage.setItem("mindecho_gemini_key", key);
-      apiKeyStatus.textContent = "Key saved. It will be used for your next entry.";
-    } else {
-      localStorage.removeItem("mindecho_gemini_key");
-      apiKeyStatus.textContent = "Key cleared. Server fallback key will be used.";
+    if (!key) {
+      apiKeyStatus.textContent = "Please enter an API key.";
+      apiKeyStatus.style.color = "#ff6b6b";
+      return;
     }
-    refreshApiKeyBanner();
-    setTimeout(() => apiKeyDialog.close(), 1200);
+    saveApiKeyBtn.disabled = true;
+    saveApiKeyBtn.textContent = "Encrypting & saving...";
+    try {
+      const res = await apiFetch("/api/user/key", {
+        method: "POST",
+        body: JSON.stringify({ apiKey: key }),
+      });
+      apiKeyStatus.textContent = `Key securely encrypted & saved (${res.keyHint}).`;
+      apiKeyStatus.style.color = "#7fff7f";
+      await refreshApiKeyBanner();
+      setTimeout(() => apiKeyDialog.close(), 1200);
+    } catch (err) {
+      apiKeyStatus.textContent = err.message || "Failed to save API key.";
+      apiKeyStatus.style.color = "#ff6b6b";
+    } finally {
+      saveApiKeyBtn.disabled = false;
+      saveApiKeyBtn.textContent = "Save Key";
+    }
   });
 }
+
 if (clearApiKeyBtn) {
-  clearApiKeyBtn.addEventListener("click", () => {
-    localStorage.removeItem("mindecho_gemini_key");
-    apiKeyInput.value = "";
-    apiKeyStatus.textContent = "Key cleared.";
-    refreshApiKeyBanner();
+  clearApiKeyBtn.addEventListener("click", async () => {
+    clearApiKeyBtn.disabled = true;
+    clearApiKeyBtn.textContent = "Removing...";
+    try {
+      await apiFetch("/api/user/key", { method: "DELETE" });
+      apiKeyInput.value = "";
+      apiKeyStatus.textContent = "Personal key removed. Server key will be used.";
+      apiKeyStatus.style.color = "#e2b96b";
+      await refreshApiKeyBanner();
+      setTimeout(() => apiKeyDialog.close(), 1200);
+    } catch (err) {
+      apiKeyStatus.textContent = err.message || "Failed to remove key.";
+      apiKeyStatus.style.color = "#ff6b6b";
+    } finally {
+      clearApiKeyBtn.disabled = false;
+      clearApiKeyBtn.textContent = "Remove Key";
+    }
   });
 }
+
 if (cancelApiKeyBtn) {
   cancelApiKeyBtn.addEventListener("click", () => apiKeyDialog.close());
 }
