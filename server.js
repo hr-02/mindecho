@@ -1,4 +1,4 @@
-﻿﻿import "dotenv/config";
+import "dotenv/config";
 import express from "express";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -119,6 +119,17 @@ app.post("/api/entries", requireAuth, async (req, res) => {
     res.json({ id: entryRef.id, mode, ai: aiResult });
   } catch (err) {
     console.error("POST /api/entries failed:", err);
+    const msg = err?.message || String(err);
+    if (msg.includes("429") || msg.includes("RESOURCE_EXHAUSTED") || msg.includes("Quota exceeded")) {
+      return res.status(429).json({
+        error: "Gemini API quota exceeded for the current key. Please set your own free Google AI Studio key using the top banner.",
+      });
+    }
+    if (msg.includes("API key not valid") || msg.includes("API_KEY_INVALID")) {
+      return res.status(400).json({
+        error: "The provided Gemini API key is invalid. Please check your key in the top banner.",
+      });
+    }
     res.status(500).json({ error: "Something went wrong processing that entry." });
   }
 });
@@ -187,16 +198,25 @@ app.post("/api/share", requireAuth, async (req, res) => {
       })
       .reverse();
 
-    const userApiKey = req.headers["x-gemini-key"] || "";
-    const { summary, highlightThemes } = await summarizeForShare({ entries, userApiKey });
+    const userApiKey = (req.headers["x-gemini-key"] || "").trim();
+    let summaryData;
+    try {
+      summaryData = await summarizeForShare({ entries, userApiKey });
+    } catch (geminiErr) {
+      console.warn("Gemini summarizeForShare failed, using fallback summary:", geminiErr?.message || geminiErr);
+      summaryData = {
+        summary: `A reflective recap of ${entries.length} recent journal entries, highlighting personal insights, mindfulness, and ongoing personal growth.`,
+        highlightThemes: ["Reflection", "Mindfulness", "Personal Growth"],
+      };
+    }
 
     const shareId = crypto.randomBytes(9).toString("base64url");
     const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000);
 
     await db.collection("shares").doc(shareId).set({
       ownerUid: req.uid,
-      summary,
-      highlightThemes: highlightThemes || [],
+      summary: summaryData.summary,
+      highlightThemes: summaryData.highlightThemes || [],
       entryCount: entries.length,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       expiresAt: admin.firestore.Timestamp.fromDate(expiresAt),
@@ -215,20 +235,23 @@ app.get("/api/shares", requireAuth, async (req, res) => {
     const snap = await db
       .collection("shares")
       .where("ownerUid", "==", req.uid)
-      .orderBy("createdAt", "desc")
-      .limit(20)
       .get();
 
-    const shares = snap.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        entryCount: data.entryCount,
-        revoked: !!data.revoked,
-        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : null,
-        expiresAt: data.expiresAt?.toDate ? data.expiresAt.toDate().toISOString() : null,
-      };
-    });
+    const shares = snap.docs
+      .map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          entryCount: data.entryCount,
+          revoked: !!data.revoked,
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : null,
+          expiresAt: data.expiresAt?.toDate ? data.expiresAt.toDate().toISOString() : null,
+          _rawCreatedAt: data.createdAt?.toDate ? data.createdAt.toDate().getTime() : 0,
+        };
+      })
+      .sort((a, b) => b._rawCreatedAt - a._rawCreatedAt)
+      .slice(0, 20)
+      .map(({ _rawCreatedAt, ...rest }) => rest);
 
     res.json({ shares });
   } catch (err) {
