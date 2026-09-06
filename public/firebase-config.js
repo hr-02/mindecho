@@ -3,7 +3,7 @@
 // Firestore and Auth are protected by security rules and ID-token verification on the server.
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyCrq4n2EG48BBQBolvycOiBsI_A1-sbxps",
+  apiKey: "secret-api-key",
   authDomain: "gen-lang-client-09340952-87717.firebaseapp.com",
   projectId: "gen-lang-client-09340952-87717",
   storageBucket: "gen-lang-client-09340952-87717.firebasestorage.app",
