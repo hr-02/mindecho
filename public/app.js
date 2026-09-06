@@ -1,4 +1,4 @@
-import { firebaseConfig } from "./firebase-config.js";
+﻿import { firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import {
   getAuth,
@@ -54,7 +54,7 @@ const MODE_HINTS = {
 };
 const MODE_PLACEHOLDERS = {
   reflect: "What's on your mind today?",
-  braindump: "Everything at once — don't organize it, just get it out.",
+  braindump: "Everything at once â€” don't organize it, just get it out.",
 };
 
 // ---------------------------------------------------------------------------
@@ -154,7 +154,7 @@ entryForm.addEventListener("submit", async (e) => {
 
   entryError.textContent = "";
   entrySubmitBtn.disabled = true;
-  entrySubmitBtn.textContent = "Thinking…";
+  entrySubmitBtn.textContent = "Thinkingâ€¦";
 
   try {
     const { ai, mode } = await apiFetch("/api/entries", {
@@ -268,7 +268,7 @@ function aiResponseElInto(container, ai, mode) {
 createShareBtn.addEventListener("click", async () => {
   shareError.textContent = "";
   createShareBtn.disabled = true;
-  createShareBtn.textContent = "Creating…";
+  createShareBtn.textContent = "Creatingâ€¦";
   try {
     await apiFetch("/api/share", {
       method: "POST",
@@ -292,16 +292,16 @@ async function loadShares() {
     shareList.innerHTML = "";
     shares.forEach((share) => {
       const li = document.createElement("li");
-      const expired = share.expiresAt && new Date(share.expiresAt).getTime() < Date.now();
+      const Expired • share.expiresAt && new Date(share.expiresAt).getTime() < Date.now();
       const link = `${location.origin}/share.html?id=${share.id}`;
 
       if (share.revoked) {
-        li.innerHTML = `<span class="revoked">Revoked · ${share.entryCount} entries</span>`;
+        li.innerHTML = `<span class="revoked">Revoked • ${share.entryCount} entries</span>`;
       } else if (expired) {
-        li.innerHTML = `<span class="revoked">Expired · ${share.entryCount} entries</span>`;
+        li.innerHTML = `<span class="revoked">Expired • ${share.entryCount} entries</span>`;
       } else {
         li.innerHTML = `
-          <span class="share-meta">${share.entryCount} entries · expires ${formatDate(share.expiresAt)}</span>
+          <span class="share-meta">${share.entryCount} entries • expires ${formatDate(share.expiresAt)}</span>
           <span class="share-actions">
             <button class="text-btn copy" type="button">Copy link</button>
             <button class="text-btn revoke" type="button">Revoke</button>
@@ -334,7 +334,7 @@ function escapeHtml(str) {
 }
 function truncate(str, n) {
   if (!str) return "";
-  return str.length > n ? `${str.slice(0, n)}…` : str;
+  return str.length > n ? `${str.slice(0, n)}â€¦` : str;
 }
 function formatDate(iso) {
   try {
@@ -348,3 +348,4 @@ function formatDate(iso) {
     return iso;
   }
 }
+

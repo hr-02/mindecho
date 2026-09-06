@@ -1,4 +1,4 @@
-const content = document.getElementById("shareContent");
+﻿const content = document.getElementById("shareContent");
 const params = new URLSearchParams(location.search);
 const shareId = params.get("id");
 
@@ -34,7 +34,7 @@ async function load() {
       <div class="meta-row" style="margin: 14px 0;">
         ${(data.highlightThemes || []).map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join("")}
       </div>
-      <p class="section-note">Based on ${data.entryCount} recent entries · this link expires ${expiresText}</p>
+      <p class="section-note">Based on ${data.entryCount} recent entries • this link expires ${expiresText}</p>
     `;
   } catch (err) {
     content.innerHTML = `<p class="empty-state">Could not load this recap. Check your connection and try again.</p>`;
@@ -42,3 +42,4 @@ async function load() {
 }
 
 load();
+

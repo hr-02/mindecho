@@ -3,39 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MindEcho â€” a journal that remembers</title>
+  <title>MindEcho - A journal that remembers what you've forgotten about yourself</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap"
     rel="stylesheet"
   />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="spine" aria-hidden="true"></div>
+  <div class="ambient-glow" aria-hidden="true"></div>
 
   <main class="page">
     <header class="masthead">
-      <h1>MindEcho</h1>
-      <p class="tagline">A journal that remembers what you've forgotten about yourself.</p>
+      <div class="brand-row">
+        <div class="brand-logo">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>MindEcho</h1>
+          <p class="tagline">A journal that remembers what you've forgotten about yourself.</p>
+        </div>
+      </div>
       <button id="signOutBtn" class="link-btn" hidden>Sign out</button>
     </header>
 
     <!-- ===================== AUTH ===================== -->
-    <section id="authSection" class="panel">
-      <div class="tabs" role="tablist" aria-label="Sign in or create account">
+    <section id="authSection" class="panel auth-panel">
+      <div class="tabs segmented" role="tablist" aria-label="Sign in or create account">
         <button class="tab active" data-authmode="signin" type="button">Sign in</button>
         <button class="tab" data-authmode="signup" type="button">Create account</button>
       </div>
       <form id="authForm" class="auth-form">
         <label>
           Email
-          <input type="email" id="authEmail" required autocomplete="email" />
+          <input type="email" id="authEmail" placeholder="you@example.com" required autocomplete="email" />
         </label>
         <label>
           Password
-          <input type="password" id="authPassword" required minlength="6" autocomplete="current-password" />
+          <input type="password" id="authPassword" placeholder="Minimum 6 characters" required minlength="6" autocomplete="current-password" />
         </label>
         <button type="submit" id="authSubmitBtn" class="btn-primary">Sign in</button>
         <p id="authError" class="error-text" role="alert"></p>
@@ -45,10 +55,17 @@
     <!-- ===================== APP (signed in) ===================== -->
     <section id="appSection" hidden>
 
-      <section class="panel">
-        <div class="tabs" role="tablist" aria-label="Journaling mode">
-          <button class="tab active" data-mode="reflect" type="button">Reflect</button>
-          <button class="tab" data-mode="braindump" type="button">Brain dump</button>
+      <section class="panel editor-panel">
+        <div class="mode-header">
+          <div class="tabs segmented" role="tablist" aria-label="Journaling mode">
+            <button class="tab active" data-mode="reflect" type="button">
+              <span class="tab-icon">&#10022;</span> Reflect
+            </button>
+            <button class="tab" data-mode="braindump" type="button">
+              <span class="tab-icon">&#9889;</span> Brain dump
+            </button>
+          </div>
+          <span id="modeHint" class="hint"></span>
         </div>
 
         <form id="entryForm">
@@ -59,7 +76,7 @@
             required
           ></textarea>
           <div class="entry-row">
-            <span id="modeHint" class="hint"></span>
+            <span class="word-count" id="wordCount">Ready for reflection</span>
             <button type="submit" id="entrySubmitBtn" class="btn-primary">Write it down</button>
           </div>
           <p id="entryError" class="error-text" role="alert"></p>
@@ -68,19 +85,21 @@
         <div id="aiResponse" class="ai-response" hidden></div>
       </section>
 
-      <section class="panel">
-        <h2>Trust circle</h2>
+      <section class="panel share-panel">
+        <div class="panel-head">
+          <h2>Trust Circle</h2>
+          <span class="badge-pill">Privacy Preserving</span>
+        </div>
         <p class="section-note">
-          Create a link that shares a paraphrased recap of recent entries â€” never the raw text â€” with
-          someone you choose. Links expire automatically and you can revoke one anytime.
+          Create an expiring link that shares a paraphrased recap of recent themes with someone you trust. Raw entry text is never exposed, and you can revoke access at any time.
         </p>
         <div class="share-controls">
           <label>
-            Recent entries to include
+            Entries to summarize
             <select id="shareEntryCount">
-              <option value="5">Last 5</option>
-              <option value="10" selected>Last 10</option>
-              <option value="20">Last 20</option>
+              <option value="5">Last 5 entries</option>
+              <option value="10" selected>Last 10 entries</option>
+              <option value="20">Last 20 entries</option>
             </select>
           </label>
           <label>
@@ -97,11 +116,13 @@
         <ul id="shareList" class="share-list"></ul>
       </section>
 
-      <section class="panel">
-        <h2>Entries</h2>
+      <section class="panel timeline-panel">
+        <div class="panel-head">
+          <h2>Journal Timeline</h2>
+        </div>
         <ul id="timeline" class="timeline"></ul>
         <p id="timelineEmpty" class="empty-state" hidden>
-          This is where it starts. Nothing to echo back yet â€” write your first entry above.
+          This is where it starts. Nothing to echo back yet - write your first entry above.
         </p>
       </section>
 
@@ -111,4 +132,3 @@
   <script type="module" src="app.js"></script>
 </body>
 </html>
-
