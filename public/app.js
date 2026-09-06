@@ -292,7 +292,7 @@ async function loadShares() {
     shareList.innerHTML = "";
     shares.forEach((share) => {
       const li = document.createElement("li");
-      const Expired • share.expiresAt && new Date(share.expiresAt).getTime() < Date.now();
+        const expired = share.expiresAt && new Date(share.expiresAt).getTime() < Date.now();
       const link = `${location.origin}/share.html?id=${share.id}`;
 
       if (share.revoked) {
@@ -348,4 +348,6 @@ function formatDate(iso) {
     return iso;
   }
 }
+
+
 
