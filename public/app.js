@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import { firebaseConfig } from "./firebase-config.js";
+﻿﻿﻿﻿﻿import { firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import {
   getAuth,
@@ -133,17 +133,18 @@ async function apiFetch(path, options = {}) {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      Authorization: Bearer ,
+      Authorization: `Bearer ${token}`,
       ...extraHeaders,
       ...(options.headers || {}),
     },
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(data.error || Request failed ());
+    throw new Error(data.error || `Request failed (${res.status})`);
   }
   return data;
 }
+
 
 // ---------------------------------------------------------------------------
 // Journal entry mode toggle + submission
