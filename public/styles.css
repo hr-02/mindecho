@@ -1,0 +1,348 @@
+/* ---------------------------------------------------------------------
+   Design tokens — "notebook at dusk": a quiet, warm space for reflection,
+   not another SaaS dashboard. Serif for anything the user or Gemini
+   actually wrote; sans for interface chrome only.
+--------------------------------------------------------------------- */
+:root {
+  --ink: #14171f;
+  --dusk: #1b202a;
+  --dusk-line: #2a3140;
+  --parchment: #ede6d6;
+  --parchment-line: #d9cfb8;
+  --amber: #c9974b;
+  --amber-deep: #a97b38;
+  --moon: #7c9cbf;
+  --mist: #e8e4d9;
+  --mist-dim: #a7a99c;
+  --ink-text: #2a2620;
+
+  --serif: "Source Serif 4", Georgia, serif;
+  --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --radius: 3px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--mist);
+  font-family: var(--sans);
+  line-height: 1.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+/* A thin vertical rule evoking a notebook's binding — the one deliberate
+   structural motif on the page, not decoration scattered everywhere. */
+.spine {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 360px);
+  width: 1px;
+  background: var(--dusk-line);
+}
+@media (max-width: 800px) {
+  .spine { display: none; }
+}
+
+.page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 56px 24px 96px;
+}
+
+.masthead {
+  position: relative;
+  margin-bottom: 40px;
+}
+.masthead h1 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 2.4rem;
+  margin: 0 0 6px;
+  color: var(--mist);
+}
+.tagline {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--mist-dim);
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.link-btn {
+  position: absolute;
+  top: 4px;
+  right: 0;
+  background: none;
+  border: none;
+  color: var(--moon);
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.link-btn:hover { text-decoration: underline; }
+
+.panel {
+  background: var(--dusk);
+  border: 1px solid var(--dusk-line);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 28px;
+}
+
+.panel h2 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.3rem;
+  margin: 0 0 8px;
+  color: var(--mist);
+}
+
+.section-note {
+  color: var(--mist-dim);
+  font-size: 0.92rem;
+  margin: 0 0 16px;
+  max-width: 60ch;
+}
+
+/* Tabs styled like a notebook divider — a lifted active tab, not a pill */
+.tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--dusk-line);
+}
+.tab {
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  color: var(--mist-dim);
+  padding: 9px 16px;
+  border-radius: 4px 4px 0 0;
+  cursor: pointer;
+  transform: translateY(1px);
+}
+.tab.active {
+  color: var(--mist);
+  background: var(--ink);
+  border-color: var(--dusk-line);
+}
+
+/* Forms */
+label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--mist-dim);
+  margin-bottom: 14px;
+}
+input[type="email"],
+input[type="password"],
+select {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: var(--ink);
+  border: 1px solid var(--dusk-line);
+  border-radius: var(--radius);
+  color: var(--mist);
+  font-family: var(--sans);
+  font-size: 0.95rem;
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--moon);
+  outline-offset: 2px;
+}
+
+.entry-textarea {
+  width: 100%;
+  min-height: 160px;
+  padding: 16px 18px;
+  background: var(--parchment);
+  color: var(--ink-text);
+  border: 1px solid var(--parchment-line);
+  border-radius: var(--radius);
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  resize: vertical;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 34px,
+    var(--parchment-line) 35px
+  );
+}
+
+.entry-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+  gap: 12px;
+}
+.hint {
+  font-size: 0.85rem;
+  color: var(--mist-dim);
+}
+
+.btn-primary,
+.btn-secondary {
+  font-family: var(--sans);
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.btn-primary {
+  background: var(--amber);
+  color: #241a0a;
+}
+.btn-primary:hover { background: var(--amber-deep); }
+.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.btn-secondary {
+  background: transparent;
+  border-color: var(--moon);
+  color: var(--moon);
+}
+.btn-secondary:hover { background: rgba(124, 156, 191, 0.12); }
+
+.error-text {
+  color: #e0876f;
+  font-size: 0.88rem;
+  margin: 10px 0 0;
+  min-height: 1em;
+}
+
+/* AI response card — visually distinct from the entry itself: a note
+   written back, not a continuation of the user's own page. */
+.ai-response {
+  margin-top: 20px;
+  padding: 18px 20px;
+  background: var(--ink);
+  border-left: 3px solid var(--amber);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+.ai-response .reflection {
+  font-family: var(--serif);
+  font-size: 1.02rem;
+  color: var(--mist);
+  margin: 0 0 12px;
+}
+.ai-response .pattern {
+  font-size: 0.88rem;
+  color: var(--moon);
+  margin: 0 0 12px;
+}
+.ai-response .question {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--mist-dim);
+  margin: 0 0 12px;
+}
+.ai-response .meta-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tag {
+  font-size: 0.78rem;
+  color: var(--mist-dim);
+  border: 1px solid var(--dusk-line);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+.ai-response .braindump-list {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  color: var(--mist);
+}
+
+/* Share list */
+.share-controls {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.share-controls label { margin-bottom: 0; min-width: 160px; }
+.share-list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+.share-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--dusk-line);
+  font-size: 0.9rem;
+}
+.share-list .share-meta { color: var(--mist-dim); }
+.share-list .share-actions { display: flex; gap: 10px; }
+.share-list button.text-btn {
+  background: none;
+  border: none;
+  color: var(--moon);
+  font-family: var(--sans);
+  font-size: 0.86rem;
+  cursor: pointer;
+  padding: 0;
+}
+.share-list button.text-btn.revoke { color: #e0876f; }
+.share-list .revoked { color: var(--mist-dim); font-style: italic; }
+
+/* Timeline */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.timeline li {
+  padding: 16px 0;
+  border-top: 1px solid var(--dusk-line);
+}
+.timeline li:first-child { border-top: none; }
+.timeline .entry-meta {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 0.82rem;
+  color: var(--mist-dim);
+  margin-bottom: 6px;
+}
+.timeline .entry-text {
+  font-family: var(--serif);
+  color: var(--mist);
+  margin: 0 0 8px;
+}
+.timeline details summary {
+  cursor: pointer;
+  color: var(--moon);
+  font-size: 0.85rem;
+}
+
+.empty-state {
+  color: var(--mist-dim);
+  font-family: var(--serif);
+  font-style: italic;
+}
