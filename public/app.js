@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿import { firebaseConfig } from "./firebase-config.js";
+﻿﻿﻿﻿import { firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import {
   getAuth,
@@ -281,7 +281,7 @@ function aiResponseElInto(container, ai, mode) {
 createShareBtn.addEventListener("click", async () => {
   shareError.textContent = "";
   createShareBtn.disabled = true;
-  createShareBtn.textContent = "Creatingâ€¦";
+  createShareBtn.textContent = "Creating";
   try {
     await apiFetch("/api/share", {
       method: "POST",
@@ -347,7 +347,7 @@ function escapeHtml(str) {
 }
 function truncate(str, n) {
   if (!str) return "";
-  return str.length > n ? `${str.slice(0, n)}â€¦` : str;
+  return str.length > n ? `${str.slice(0, n)}` : str;
 }
 function formatDate(iso) {
   try {
@@ -382,7 +382,7 @@ function refreshApiKeyBanner() {
   if (apiKeyBanner) {
     if (!key) {
       apiKeyBanner.style.display = "block";
-      apiKeyBanner.querySelector("strong").textContent = "Using server API key.";
+      apiKeyBanner.querySelector("strong").textContent = "API key is not set";
       apiKeyBanner.querySelector("strong").style.color = "#e2b96b";
     } else {
       apiKeyBanner.style.display = "block";
