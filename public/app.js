@@ -1,4 +1,4 @@
-﻿import { firebaseConfig } from "./firebase-config.js";
+﻿﻿﻿﻿import { firebaseConfig } from "./firebase-config.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import {
   getAuth,
@@ -95,6 +95,7 @@ onAuthStateChanged(auth, (user) => {
     signOutBtn.hidden = false;
     loadEntries();
     loadShares();
+    refreshApiKeyBanner();
   } else {
     authSection.hidden = false;
     appSection.hidden = true;
@@ -116,19 +117,30 @@ function describeAuthError(err) {
 // ---------------------------------------------------------------------------
 // Authenticated fetch helper
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// User Gemini API key  stored in localStorage, sent as x-gemini-key header
+// The server uses it per-request instead of the fallback server key.
+// ---------------------------------------------------------------------------
+function getUserGeminiKey() {
+  return (localStorage.getItem("mindecho_gemini_key") || "").trim();
+}
+
 async function apiFetch(path, options = {}) {
   const token = await auth.currentUser.getIdToken();
+  const userKey = getUserGeminiKey();
+  const extraHeaders = userKey ? { "x-gemini-key": userKey } : {};
   const res = await fetch(path, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      Authorization: Bearer ,
+      ...extraHeaders,
       ...(options.headers || {}),
     },
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(data.error || `Request failed (${res.status})`);
+    throw new Error(data.error || Request failed ());
   }
   return data;
 }
@@ -351,3 +363,63 @@ function formatDate(iso) {
 
 
 
+
+// ---------------------------------------------------------------------------
+// API Key Settings Panel
+// ---------------------------------------------------------------------------
+const apiKeyBanner = document.getElementById("apiKeyBanner");
+const showApiKeySettings = document.getElementById("showApiKeySettings");
+const apiKeyDialog = document.getElementById("apiKeyDialog");
+const apiKeyInput = document.getElementById("apiKeyInput");
+const saveApiKeyBtn = document.getElementById("saveApiKey");
+const clearApiKeyBtn = document.getElementById("clearApiKey");
+const cancelApiKeyBtn = document.getElementById("cancelApiKey");
+const apiKeyStatus = document.getElementById("apiKeyStatus");
+
+function refreshApiKeyBanner() {
+  const key = getUserGeminiKey();
+  if (apiKeyBanner) {
+    if (!key) {
+      apiKeyBanner.style.display = "block";
+      apiKeyBanner.querySelector("strong").textContent = "Using server API key.";
+      apiKeyBanner.querySelector("strong").style.color = "#e2b96b";
+    } else {
+      apiKeyBanner.style.display = "block";
+      apiKeyBanner.querySelector("strong").textContent = "Using your personal API key.";
+      apiKeyBanner.querySelector("strong").style.color = "#7fff7f";
+    }
+  }
+}
+
+if (showApiKeySettings) {
+  showApiKeySettings.addEventListener("click", () => {
+    apiKeyInput.value = getUserGeminiKey();
+    apiKeyStatus.textContent = "";
+    apiKeyDialog.showModal();
+  });
+}
+if (saveApiKeyBtn) {
+  saveApiKeyBtn.addEventListener("click", () => {
+    const key = apiKeyInput.value.trim();
+    if (key) {
+      localStorage.setItem("mindecho_gemini_key", key);
+      apiKeyStatus.textContent = "Key saved. It will be used for your next entry.";
+    } else {
+      localStorage.removeItem("mindecho_gemini_key");
+      apiKeyStatus.textContent = "Key cleared. Server fallback key will be used.";
+    }
+    refreshApiKeyBanner();
+    setTimeout(() => apiKeyDialog.close(), 1200);
+  });
+}
+if (clearApiKeyBtn) {
+  clearApiKeyBtn.addEventListener("click", () => {
+    localStorage.removeItem("mindecho_gemini_key");
+    apiKeyInput.value = "";
+    apiKeyStatus.textContent = "Key cleared.";
+    refreshApiKeyBanner();
+  });
+}
+if (cancelApiKeyBtn) {
+  cancelApiKeyBtn.addEventListener("click", () => apiKeyDialog.close());
+}

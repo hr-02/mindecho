@@ -4,19 +4,32 @@
 //   summarizeForShare() builds the paraphrased recap used by share links
 //
 // Every call uses responseSchema so Gemini returns strict JSON we can trust,
-// instead of free-form text we'd have to parse with regex.
+// instead of free-form text we have to parse with regex.
+//
+// Key resolution order (per-request):
+//   1. userApiKey argument  supplied by the user via the UI (stored in localStorage)
+//   2. Server fallback key  fetched from Secret Manager on first use
 
 import { GoogleGenAI } from "@google/genai";
 import { getGeminiApiKey } from "./secrets.js";
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
-let client = null;
-async function getClient() {
-  if (client) return client;
+// Server-level fallback client (cached after first Secret Manager fetch)
+let serverClient = null;
+async function getServerClient() {
+  if (serverClient) return serverClient;
   const apiKey = await getGeminiApiKey();
-  client = new GoogleGenAI({ apiKey });
-  return client;
+  serverClient = new GoogleGenAI({ apiKey });
+  return serverClient;
+}
+
+// Returns a client using the user key if provided, otherwise the server key.
+async function getClient(userApiKey) {
+  if (userApiKey && typeof userApiKey === "string" && userApiKey.trim().length > 10) {
+    return new GoogleGenAI({ apiKey: userApiKey.trim() });
+  }
+  return getServerClient();
 }
 
 // ---------------------------------------------------------------------------
@@ -39,7 +52,7 @@ Rules:
   previous entries from this same person. Use it to notice real, specific
   patterns  recurring situations, moods, or turning points  but only
   mention a pattern if it is actually supported by the context you were
-  given. Never invent a memory that isn't there.
+  given. Never invent a memory that is not there.
 - Keep "reflection" to 2-4 sentences. Write to the person as "you."
 - "followUpQuestion" should be a single, specific, open-ended question that
   helps them go one layer deeper on today's entry  never generic
@@ -65,8 +78,8 @@ const reflectSchema = {
   required: ["reflection", "noticedPattern", "followUpQuestion", "mood", "themes"],
 };
 
-export async function reflectOnEntry({ text, memoryContext }) {
-  const ai = await getClient();
+export async function reflectOnEntry({ text, memoryContext, userApiKey }) {
+  const ai = await getClient(userApiKey);
   const prompt = [
     "PAST CONTEXT (most recent last; may be empty if this is a new journal):",
     memoryContext && memoryContext.trim() ? memoryContext : "(no prior entries yet)",
@@ -103,7 +116,7 @@ Rules:
   be started immediately  the smallest possible honest first move, not a
   summary of everything they need to do.
 - "parkedForLater" lists the other things mentioned, filed away so the
-  person doesn't have to hold them in their head  1-6 short items, in their
+  person does not have to hold them in their head  1-6 short items, in their
   own words where possible, not judged or reordered by importance.
 - "reframe" is one short, grounded sentence  never toxic positivity, never
   a command. It should reduce shame, not add motivation-speak.
@@ -122,8 +135,8 @@ const brainDumpSchema = {
   required: ["microStep", "parkedForLater", "reframe"],
 };
 
-export async function processBrainDump({ text }) {
-  const ai = await getClient();
+export async function processBrainDump({ text, userApiKey }) {
+  const ai = await getClient(userApiKey);
 
   const response = await ai.models.generateContent({
     model: MODEL,
@@ -141,9 +154,6 @@ export async function processBrainDump({ text }) {
 
 // ---------------------------------------------------------------------------
 // Share summaries  used by the "revocable trust circle" feature.
-// We deliberately generate a paraphrased recap rather than exposing raw
-// entry text through the share link, so a trusted contact sees the shape
-// of a period of time, not a verbatim transcript of private entries.
 // ---------------------------------------------------------------------------
 
 const SHARE_SYSTEM_INSTRUCTION = `
@@ -153,7 +163,7 @@ or therapist)  not to the journal owner themselves.
 
 Rules:
 - Paraphrase. Never quote a journal excerpt verbatim, even partially.
-- Do not mention specific private details that aren't necessary to convey
+- Do not mention specific private details that are not necessary to convey
   the overall shape of the period (general mood arc, notable shifts).
 - Write in third person about "they/them", 3-5 sentences, warm and
   respectful in tone, never clinical.
@@ -171,8 +181,8 @@ const shareSummarySchema = {
   required: ["summary", "highlightThemes"],
 };
 
-export async function summarizeForShare({ entries }) {
-  const ai = await getClient();
+export async function summarizeForShare({ entries, userApiKey }) {
+  const ai = await getClient(userApiKey);
   const bulletText = entries
     .map((e) => `- (${e.date}) ${e.excerpt}`)
     .join("\n");
@@ -190,4 +200,3 @@ export async function summarizeForShare({ entries }) {
 
   return JSON.parse(response.text);
 }
-

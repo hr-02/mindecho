@@ -1,4 +1,4 @@
-import "dotenv/config";
+﻿import "dotenv/config";
 import express from "express";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -94,12 +94,13 @@ app.post("/api/entries", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Entry is too long (max 8000 characters)." });
     }
 
+    const userApiKey = (req.headers["x-gemini-key"] || "").trim();
     let aiResult;
     if (mode === "reflect") {
       const memoryContext = await buildMemoryContext(req.uid);
-      aiResult = await reflectOnEntry({ text, memoryContext });
+      aiResult = await reflectOnEntry({ text, memoryContext, userApiKey });
     } else {
-      aiResult = await processBrainDump({ text });
+      aiResult = await processBrainDump({ text, userApiKey });
     }
 
     const entryRef = db
@@ -186,7 +187,7 @@ app.post("/api/share", requireAuth, async (req, res) => {
       })
       .reverse();
 
-    const { summary, highlightThemes } = await summarizeForShare({ entries });
+    const userApiKey = req.headers["x-gemini-key"] || "";\r\n    const { summary, highlightThemes } = await summarizeForShare({ entries, userApiKey });
 
     const shareId = crypto.randomBytes(9).toString("base64url");
     const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000);
@@ -285,3 +286,4 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`MindEcho listening on port ${PORT}`);
 });
+
