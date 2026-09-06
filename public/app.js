@@ -154,7 +154,7 @@ entryForm.addEventListener("submit", async (e) => {
 
   entryError.textContent = "";
   entrySubmitBtn.disabled = true;
-  entrySubmitBtn.textContent = "Thinkingâ€¦";
+  entrySubmitBtn.textContent = "Thinking...";
 
   try {
     const { ai, mode } = await apiFetch("/api/entries", {
