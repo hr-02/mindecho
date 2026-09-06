@@ -1,4 +1,4 @@
-﻿// All calls to the Gemini API live here, behind three functions:
+﻿﻿// All calls to the Gemini API live here, behind three functions:
 //   reflectOnEntry()   the core "memory-aware" journaling mode
 //   processBrainDump() turns a messy stream of thoughts into one next step
 //   summarizeForShare() builds the paraphrased recap used by share links
@@ -13,7 +13,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { getGeminiApiKey } from "./secrets.js";
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
 
 // Server-level fallback client (cached after first Secret Manager fetch)
 let serverClient = null;
