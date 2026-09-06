@@ -1,4 +1,4 @@
-﻿import "dotenv/config";
+﻿﻿import "dotenv/config";
 import express from "express";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -187,7 +187,8 @@ app.post("/api/share", requireAuth, async (req, res) => {
       })
       .reverse();
 
-    const userApiKey = req.headers["x-gemini-key"] || "";\r\n    const { summary, highlightThemes } = await summarizeForShare({ entries, userApiKey });
+    const userApiKey = req.headers["x-gemini-key"] || "";
+    const { summary, highlightThemes } = await summarizeForShare({ entries, userApiKey });
 
     const shareId = crypto.randomBytes(9).toString("base64url");
     const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000);
