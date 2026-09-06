@@ -54,7 +54,7 @@ const MODE_HINTS = {
 };
 const MODE_PLACEHOLDERS = {
   reflect: "What's on your mind today?",
-  braindump: "Everything at once â€” don't organize it, just get it out.",
+  braindump: "Everything at once don't organize it, just get it out.",
 };
 
 // ---------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 ﻿// All calls to the Gemini API live here, behind three functions:
-//   reflectOnEntry()   â€” the core "memory-aware" journaling mode
-//   processBrainDump() â€” turns a messy stream of thoughts into one next step
-//   summarizeForShare()â€” builds the paraphrased recap used by share links
+//   reflectOnEntry()   the core "memory-aware" journaling mode
+//   processBrainDump() turns a messy stream of thoughts into one next step
+//   summarizeForShare() builds the paraphrased recap used by share links
 //
 // Every call uses responseSchema so Gemini returns strict JSON we can trust,
 // instead of free-form text we'd have to parse with regex.
@@ -20,13 +20,13 @@ async function getClient() {
 }
 
 // ---------------------------------------------------------------------------
-// Mode 1: Reflect â€” the core memory-aware journaling loop
+// Mode 1: Reflect  the core memory-aware journaling loop
 // ---------------------------------------------------------------------------
 
 const REFLECT_SYSTEM_INSTRUCTION = `
 You are the reflective voice inside MindEcho, a private journaling app.
 Someone is writing a journal entry. Your job is to respond the way a warm,
-attentive friend with a good memory would â€” not a therapist, not a doctor,
+attentive friend with a good memory would  not a therapist, not a doctor,
 and not a life coach with a program to sell.
 
 Rules:
@@ -37,12 +37,12 @@ Rules:
   a trusted person right now, and keep the rest of your response brief.
 - You will sometimes be given "past context": short, dated notes about
   previous entries from this same person. Use it to notice real, specific
-  patterns â€” recurring situations, moods, or turning points â€” but only
+  patterns  recurring situations, moods, or turning points  but only
   mention a pattern if it is actually supported by the context you were
   given. Never invent a memory that isn't there.
 - Keep "reflection" to 2-4 sentences. Write to the person as "you."
 - "followUpQuestion" should be a single, specific, open-ended question that
-  helps them go one layer deeper on today's entry â€” never generic
+  helps them go one layer deeper on today's entry  never generic
   ("How did that make you feel?" is too generic).
 - "mood" is one or two words (e.g. "quietly proud", "overwhelmed").
 - "themes" is 1-4 short lowercase tags (e.g. "work stress", "family").
@@ -90,7 +90,7 @@ export async function reflectOnEntry({ text, memoryContext }) {
 }
 
 // ---------------------------------------------------------------------------
-// Mode 2: Brain Dump â€” decompress an overwhelming stream of thoughts
+// Mode 2: Brain Dump  decompress an overwhelming stream of thoughts
 // ---------------------------------------------------------------------------
 
 const BRAINDUMP_SYSTEM_INSTRUCTION = `
@@ -100,12 +100,12 @@ job is to lower the activation energy to start, not to produce a full plan.
 
 Rules:
 - "microStep" is ONE concrete action that takes 10 minutes or less and can
-  be started immediately â€” the smallest possible honest first move, not a
+  be started immediately  the smallest possible honest first move, not a
   summary of everything they need to do.
 - "parkedForLater" lists the other things mentioned, filed away so the
-  person doesn't have to hold them in their head â€” 1-6 short items, in their
+  person doesn't have to hold them in their head  1-6 short items, in their
   own words where possible, not judged or reordered by importance.
-- "reframe" is one short, grounded sentence â€” never toxic positivity, never
+- "reframe" is one short, grounded sentence  never toxic positivity, never
   a command. It should reduce shame, not add motivation-speak.
 - Do not diagnose ADHD, anxiety, or any condition, even if the entry sounds
   like it. Just help them start.
@@ -140,7 +140,7 @@ export async function processBrainDump({ text }) {
 }
 
 // ---------------------------------------------------------------------------
-// Share summaries â€” used by the "revocable trust circle" feature.
+// Share summaries  used by the "revocable trust circle" feature.
 // We deliberately generate a paraphrased recap rather than exposing raw
 // entry text through the share link, so a trusted contact sees the shape
 // of a period of time, not a verbatim transcript of private entries.
@@ -149,7 +149,7 @@ export async function processBrainDump({ text }) {
 const SHARE_SYSTEM_INSTRUCTION = `
 You write short, warm recaps of a period in someone's journal, meant to be
 shown to a person THEY chose to share with (e.g. a partner, close friend,
-or therapist) â€” not to the journal owner themselves.
+or therapist)  not to the journal owner themselves.
 
 Rules:
 - Paraphrase. Never quote a journal excerpt verbatim, even partially.

@@ -1,8 +1,8 @@
 ﻿// Retrieves the Gemini API key without ever hardcoding it in source.
 //
 // Priority order:
-//   1. GEMINI_API_KEY env var â€” a local-dev-only shortcut (see .env.example).
-//   2. Google Cloud Secret Manager â€” what production (Cloud Run) uses.
+//   1. GEMINI_API_KEY env var  a local-dev-only shortcut (see .env.example).
+//   2. Google Cloud Secret Manager  what production (Cloud Run) uses.
 //
 // The key is fetched once and cached in memory for the life of the process,
 // so a Cloud Run instance only calls Secret Manager on its first request
@@ -16,7 +16,7 @@ let client = null;
 export async function getGeminiApiKey() {
   if (cachedKey) return cachedKey;
 
-  // Local development shortcut â€” never set this in production.
+  // Local development shortcut  never set this in production.
   if (process.env.GEMINI_API_KEY) {
     cachedKey = process.env.GEMINI_API_KEY;
     return cachedKey;
@@ -29,7 +29,7 @@ export async function getGeminiApiKey() {
   if (!projectId) {
     throw new Error(
       "GOOGLE_CLOUD_PROJECT is not set, and GEMINI_API_KEY is not set either. " +
-        "Set one of them â€” see .env.example."
+        "Set one of them  see .env.example."
     );
   }
 
